@@ -1,0 +1,95 @@
+name: craftshelf
+
+services:
+  # PostgreSQL
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: craftshelf-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-craftshelf}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-craftshelf_dev_pwd}
+      POSTGRES_DB: ${POSTGRES_DB:-craftshelf}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+      TZ: Asia/Shanghai
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-craftshelf} -d ${POSTGRES_DB:-craftshelf}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    command:
+      - "postgres"
+      - "-c"
+      - "max_connections=200"
+      - "-c"
+      - "shared_buffers=256MB"
+      - "-c"
+      - "log_min_duration_statement=200"
+
+  # Redis
+  redis:
+    image: redis:8-alpine
+    container_name: craftshelf-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    command: ["redis-server", "--appendonly", "yes"]
+
+  # SeaweedFS
+  seaweedfs:
+    image: chrislusf/seaweedfs:4.51
+    container_name: craftshelf-seaweedfs
+    restart: unless-stopped
+    command: >
+      server
+      -s3
+      -s3.port=8333
+      -s3.config=/etc/seaweedfs/s3.json
+      -master.volumeSizeLimitMB=100
+      -volume.max=10
+      -dir=/data
+    ports:
+      - "${SEAWEEDFS_S3_PORT:-8333}:8333"
+      - "9333:9333"
+      - "8888:8888"
+    volumes:
+      - seaweedfsdata:/data
+      - ./seaweedfs/s3.json:/etc/seaweedfs/s3.json:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9333/cluster/status"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 20s
+  seaweedfs-init:
+    image: chrislusf/seaweedfs:4.51
+    container_name: craftshelf-seaweedfs-init
+    depends_on:
+      seaweedfs:
+        condition: service_healthy
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        set -e
+        echo 's3.bucket.create -name craftshelf-works'   | weed shell -master=seaweedfs:9333
+        echo 's3.bucket.create -name craftshelf-avatars' | weed shell -master=seaweedfs:9333
+        echo '[seaweedfs-init] buckets ready'
+
+volumes:
+  pgdata:
+  redisdata:
+  seaweedfsdata:

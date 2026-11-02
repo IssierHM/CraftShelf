@@ -1,0 +1,10 @@
+# Environment variables (database password, JWT secret)
+.env
+
+# Build artifacts (go build ./cmd/api, etc.)
+/bin/
+*.exe
+
+# Test artifacts (go test -c, go test -coverprofile)
+*.test
+*.out

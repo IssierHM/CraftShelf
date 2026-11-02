@@ -1,0 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS vector;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";   -- uuid_generate_v4()
+
+ALTER DATABASE craftshelf SET timezone TO 'UTC';

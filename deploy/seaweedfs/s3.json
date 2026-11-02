@@ -1,0 +1,14 @@
+{
+  "identities": [
+    {
+      "name": "craftshelf",
+      "credentials": [
+        {
+          "accessKey": "craftshelf",
+          "secretKey": "craftshelf_dev_pwd"
+        }
+      ],
+      "actions": ["Admin", "Read", "Write", "List", "Tagging"]
+    }
+  ]
+}
