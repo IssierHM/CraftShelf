@@ -8,3 +8,5 @@
 # Test artifacts (go test -c, go test -coverprofile)
 *.test
 *.out
+
+DEVELOPMENT.md
