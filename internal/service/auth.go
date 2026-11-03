@@ -64,9 +64,12 @@ func (s *AuthService) Register(ctx context.Context, email, username, password st
 
 func (s *AuthService) Login(ctx context.Context, email, password string) (string, error) {
 	user, err := s.users.FindByEmailForAuth(ctx, email)
-	if errors.Is(err, domain.ErrUserNotFound) {
-		_ = bcrypt.CompareHashAndPassword(s.dummyHash, []byte(password))
-		return "", domain.ErrInvalidCredentials
+	if err != nil {
+		if errors.Is(err, domain.ErrUserNotFound) {
+			_ = bcrypt.CompareHashAndPassword(s.dummyHash, []byte(password))
+			return "", domain.ErrInvalidCredentials
+		}
+		return "", err
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {

@@ -26,8 +26,8 @@ type Config struct {
 	S3Region        string
 	S3AccessKey     string
 	S3SecretKey     string
-	S3BucketPublic  string
-	S3BucketPrivate string
+	S3BucketWorks   string
+	S3BucketAvatars string
 	S3UsePathStyle  bool
 }
 
@@ -43,8 +43,8 @@ func Load() (*Config, error) {
 		S3Region:        getEnv("APP_S3_REGION", "us-east-1"),
 		S3AccessKey:     os.Getenv("APP_S3_ACCESS_KEY"),
 		S3SecretKey:     os.Getenv("APP_S3_SECRET_KEY"),
-		S3BucketPublic:  getEnv("APP_S3_BUCKET_PUBLIC", "craftshelf-public"),
-		S3BucketPrivate: getEnv("APP_S3_BUCKET_PRIVATE", "craftshelf-private"),
+		S3BucketWorks:   getEnv("APP_S3_BUCKET_WORKS", "craftshelf-works"),
+		S3BucketAvatars: getEnv("APP_S3_BUCKET_AVATARS", "craftshelf-avatars"),
 	}
 
 	if cfg.PostgresDSN == "" {
